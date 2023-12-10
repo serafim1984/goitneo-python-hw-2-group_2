@@ -1,5 +1,8 @@
 from collections import UserDict
 
+class PhoneNumberLenthException(Exception):
+    pass
+
 class Field:
     def __init__(self, value):
         self.value = value
@@ -12,19 +15,16 @@ class Name(Field):
 
 class Phone(Field):
     def __init__(self, value):
-        super().__init__(value)
-    
+        super().__init__(value) 
+
     def validation(self):
-
-        if len(self.value()) == 10:
-
-            pass
-        
-        else: 
+        try:
+            if len(self.value()) != 10: 
+                raise PhoneNumberLenthException
             
-            raise Exception("Phone number shall be 10 digits long")
-
-
+        except PhoneNumberLenthException:
+            print('Number must be 10 digits long - please try once more')
+        
 
 class Record:
     def __init__(self, name):
@@ -32,22 +32,21 @@ class Record:
         self.phones = []
 
     def add_phone(self, phone):
-
-        return self.phones.append(phone)
+        return self.phones.append(Phone(phone))
     
     def remove_phone(self, phone):
         return self.phones.remove(phone)
     
-    def update_phone(self, phone, new_phone):
-        self.phones[self.phones.index(phone)] = new_phone
-        
+    def edit_phone(self, phone, new_phone):
+        for ph in self.phones:
+            if str(ph) == phone:
+                self.phones[self.phones.index(ph)] = Phone(new_phone)
     
-    #def update_phone(self, phone, new_phone):
-    #    return self.phones.insert(self.phones.index(phone), new_phone)
-    
-    def show_phone(self):
-        
-        return f"{'; '.join(p.value for p in self.phones)}"
+    def find_phone(self, phone): 
+        for ph in self.phones:
+            if str(ph) == phone:
+                found_phone = phone
+        return found_phone
     
     def __str__(self):
         return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
@@ -55,94 +54,56 @@ class Record:
 class AddressBook(UserDict):
 
     def add_record(self, record):
+        self.update({record.name : record})
 
-        self.data.update({record.name : record.phones})
+    def find(self, name):
+        for name_dict, record in self.data.items():
+            if str(name_dict) == name:
+                return record
 
-
+    def delete(self, name):
+        for name_dict, record in self.data.items():
+            if str(name_dict) == name:
+                to_remove = name_dict
+        self.data.pop(to_remove) 
 
         
-
-
-    # реалізація класу
-
-
-
-
-record_1 = Record('Roma')
-
-  #  print(record_1)
-
-phone = Phone('1234567890')
-
-phone_1 = Phone('123')
-
-record_1.add_phone(phone)
-
-print(record_1)
-
-record_1.add_phone(phone_1)
-
-print(record_1)
-
-  #  record_1.remove_phone(phone_1)
-
-print(record_1.show_phone())
-
-  #  print(record_1)
-
-phone_2 = Phone('567')
-
-record_1.update_phone(phone_1, phone_2)
-
-print(record_1)
-    
-
+# реалізація класу
+# Створення нової адресної книги
 book = AddressBook()
 
-book.add_record(record_1)
+john_record = Record("John")
+john_record.add_phone("1234567890")
+john_record.add_phone("5555555555")
 
-print(book)
+# Додавання запису John до адресної книги
+book.add_record(john_record)
 
-print(record_1.name)
+# Створення та додавання нового запису для Jane
+jane_record = Record("Jane")
+jane_record.add_phone("9876543210")
+book.add_record(jane_record)
 
+# Виведення всіх записів у книзі
 for name, record in book.data.items():
-    print(str(name) + ' - ' + '; '.join(p.value for p in record))
+    print(record)
 
+# Знаходження та редагування телефону для John
+john = book.find("John")
 
+print(john)
 
+john.edit_phone("1234567890", "1112223333")
 
+print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
 
+# Пошук конкретного телефону у записі John
+found_phone = john.find_phone("5555555555")
+print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
 
-'''
-     # Створення нової адресної книги
-    book = AddressBook()
+# Видалення запису Jane
+book.delete("Jane")
 
-    # Створення запису для John
-    john_record = Record("John")
-    john_record.add_phone("1234567890")
-    john_record.add_phone("5555555555")
-
-    # Додавання запису John до адресної книги
-    book.add_record(john_record)
-
-    # Створення та додавання нового запису для Jane
-    jane_record = Record("Jane")
-    jane_record.add_phone("9876543210")
-    book.add_record(jane_record)
-
-    # Виведення всіх записів у книзі
-    for name, record in book.data.items():
-        print(record)
-
-    # Знаходження та редагування телефону для John
-    john = book.find("John")
-    john.edit_phone("1234567890", "1112223333")
-
-    print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
-
-    # Пошук конкретного телефону у записі John
-    found_phone = john.find_phone("5555555555")
-    print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
-
-    # Видалення запису Jane
-    book.delete("Jane") '''
+# Виведення всіх записів у книзі (перевірка видалення)
+for name, record in book.data.items():
+    print(record)
